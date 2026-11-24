@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOL - 당신의 모든 놀라운 순간 (PC SPA)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Pretendard -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Pretendard', 'sans-serif'] },
+                    colors: {
+                        primary: '#5A4CFF', 
+                        secondary: '#00A896', 
+                        accent: '#FF007A', 
+                        dark: '#111827',
+                        lightbg: '#f8f9fa'
+                    },
+                    maxWidth: {
+                        'pc': '1200px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #ffffff; overflow-x: hidden; }
+        
+        /* 뷰 전환 애니메이션 */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 공통 유틸리티 */
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .input-focus:focus { outline: none; border-color: #5A4CFF; box-shadow: 0 0 0 3px rgba(90, 76, 255, 0.15); }
+        
+        /* 홈 - 히어로 검색창 미니 탭 */
+        .search-tab.active { font-weight: bold; color: #5A4CFF; border-bottom: 3px solid #5A4CFF; }
+        
+        /* 뮤지컬 랭킹 넘버링 */
+        .rank-number {
+            position: absolute; bottom: -10px; left: 10px;
+            font-size: 5rem; font-weight: 900; color: white; line-height: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-style: italic; z-index: 10;
+        }
+
+        /* 숏폼 배너 스타일 */
+        .shortform-timeline {
+            width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden;
+        }
+        .shortform-progress { width: 45%; height: 100%; background: #fff; border-radius: 2px; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- Global Navigation Bar (GNB) -->
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-pc mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-12">
+                <!-- Logo -->
+                <div class="cursor-pointer" onclick="navigateTo('view-home')">
+                    <span class="text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">NOL</span>
+                </div>
+                <!-- Nav Links -->
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="navigateTo('view-home')" class="nav-link text-primary font-bold text-[17px] transition-colors pb-1 border-b-2 border-primary">홈</button>
+                    <button onclick="navigateTo('view-domestic')" class="nav-link text-gray-500 hover:text-primary font-semibold text-[17px] transition-colors pb-1 border-b-2 border-transparent">국내 숙소</button>
+                    <button onclick="navigateTo('view-global')" class="nav-link text-gray-500 hover:text-primary font-semibold text-[17px] transition-colors pb-1 border-b-2 border-transparent">해외 숙소</button>
+                    <button onclick="navigateTo('view-tickets')" class="nav-link text-gray-500 hover:text-primary font-semibold text-[17px] transition-colors pb-1 border-b-2 border-transparent">공연·티켓</button>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-6">
+                <button class="text-gray-500 hover:text-primary font-semibold text-sm">로그인/가입</button>
+                <button class="w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-bars text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="min-h-screen bg-lightbg pb-20">
+
+        <!-- ==========================================
+             1. HOME VIEW
+        =========================================== -->
+        <div id="view-home" class="view-section active">
+            <!-- Hero & Search -->
+            <section class="relative h-[500px] flex items-center justify-center bg-dark">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-40"></div>
+                
+                <div class="relative z-10 w-full max-w-[800px] px-6 text-center">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-8 drop-shadow-lg">어디로 놀러갈까요?</h1>
+                    
+                    <!-- Search Box -->
+                    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden text-left">
+                        <div class="flex border-b border-gray-100 bg-gray-50">
+                            <button class="search-tab active flex-1 py-4 text-center text-[15px]">숙소</button>
+                            <button class="search-tab flex-1 py-4 text-center text-gray-500 text-[15px]">공연/티켓</button>
+                            <button class="search-tab flex-1 py-4 text-center text-gray-500 text-[15px]">항공</button>
+                        </div>
+                        <div class="p-6 flex gap-3">
+                            <div class="flex-1 relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" placeholder="검색어를 입력하세요 (예: 강릉 호텔, 레베카)" class="input-focus w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-white font-medium">
+                            </div>
+                            <button class="bg-[#ff0055] hover:bg-[#e6004c] text-white font-bold py-3.5 px-8 rounded-xl transition-colors shrink-0">검색</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Synergy Section (Cross-selling Curation) -->
+            <section class="max-w-pc mx-auto px-6 py-20">
+                <div class="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-gray-900 mb-3">이번 주말, 이 공연 보고 여기서 자면 딱!</h2>
+                        <p class="text-gray-500 font-medium text-lg">티켓과 숙소를 한 번에! NOL이 큐레이션한 특별 결합 상품</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Card 1: Busan -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 flex flex-col group">
+                        <div class="relative h-64 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1598565494247-49f2b84eb537?auto=format&fit=crop&w=600&q=80" alt="Busan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <div class="absolute top-4 left-4 bg-[#ff0055] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-10">
+                                NOL 특가
+                            </div>
+                            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10">
+                                <span class="text-white font-bold text-sm bg-black/50 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 hover:bg-[#ff0055] transition-colors cursor-pointer border border-white/20">
+                                    <i class="fa-solid fa-play text-xs"></i> 30초 숏폼 기획전 미리보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="text-sm text-[#ff0055] font-bold mb-2"><i class="fa-solid fa-location-dot mr-1"></i>국내 시너지</div>
+                            <h3 class="text-2xl font-extrabold text-gray-900 mb-2 leading-snug">[부산] 싸이 흠뻑쇼 패키지</h3>
+                            <p class="text-[15px] text-gray-600 mb-8 flex-grow">콘서트 티켓 + 해운대 오션뷰 호텔 1박 특별 결합 상품</p>
+                            
+                            <div class="flex items-center justify-between mt-auto pt-5 border-t border-gray-100">
+                                <div>
+                                    <span class="text-xs text-gray-400 line-through block mb-0.5">350,000원</span>
+                                    <span class="text-2xl font-black text-[#111827]">289,000원<span class="text-sm text-gray-500 font-normal">~</span></span>
+                                </div>
+                                <button class="bg-[#111827] hover:bg-[#ff0055] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-md">
+                                    패키지 예약하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: London -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 flex flex-col group">
+                        <div class="relative h-64 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80" alt="London" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <div class="absolute top-4 left-4 bg-[#ff6b00] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-10">
+                                HOT
+                            </div>
+                            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10">
+                                <span class="text-white font-bold text-sm bg-black/50 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 hover:bg-[#ff6b00] transition-colors cursor-pointer border border-white/20">
+                                    <i class="fa-solid fa-play text-xs"></i> 30초 숏폼 기획전 미리보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="text-sm text-[#ff6b00] font-bold mb-2"><i class="fa-solid fa-location-dot mr-1"></i>해외 시너지</div>
+                            <h3 class="text-2xl font-extrabold text-gray-900 mb-2 leading-snug">[런던] EPL 직관 코스</h3>
+                            <p class="text-[15px] text-gray-600 mb-8 flex-grow">토트넘 홈경기 티켓 + 런던 킹스크로스역 인근 가성비 숙소</p>
+                            
+                            <div class="flex items-center justify-between mt-auto pt-5 border-t border-gray-100">
+                                <div>
+                                    <span class="text-xs text-gray-400 line-through block mb-0.5">1,200,000원</span>
+                                    <span class="text-2xl font-black text-[#111827]">950,000원<span class="text-sm text-gray-500 font-normal">~</span></span>
+                                </div>
+                                <button class="bg-[#111827] hover:bg-[#ff0055] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-md">
+                                    패키지 예약하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Seoul -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 flex flex-col group">
+                        <div class="relative h-64 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1540039155733-d76e6d48e30f?auto=format&fit=crop&w=600&q=80" alt="Seoul Concert" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <div class="absolute top-4 left-4 bg-[#5A4CFF] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-10">
+                                주말 추천
+                            </div>
+                            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10">
+                                <span class="text-white font-bold text-sm bg-black/50 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 hover:bg-[#5A4CFF] transition-colors cursor-pointer border border-white/20">
+                                    <i class="fa-solid fa-play text-xs"></i> 30초 숏폼 기획전 미리보기
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="text-sm text-[#5A4CFF] font-bold mb-2"><i class="fa-solid fa-location-dot mr-1"></i>도심 힐링</div>
+                            <h3 class="text-2xl font-extrabold text-gray-900 mb-2 leading-snug">[서울] 예술의 전당 패키지</h3>
+                            <p class="text-[15px] text-gray-600 mb-8 flex-grow">대형 뮤지컬 관람 + 서초/강남권 4성급 호캉스 결합</p>
+                            
+                            <div class="flex items-center justify-between mt-auto pt-5 border-t border-gray-100">
+                                <div>
+                                    <span class="text-xs text-gray-400 line-through block mb-0.5">420,000원</span>
+                                    <span class="text-2xl font-black text-[#111827]">315,000원<span class="text-sm text-gray-500 font-normal">~</span></span>
+                                </div>
+                                <button class="bg-[#111827] hover:bg-[#ff0055] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-md">
+                                    패키지 예약하기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
+        <!-- ==========================================
+             2. DOMESTIC VIEW (국내 숙소)
+        =========================================== -->
+        <div id="view-domestic" class="view-section">
+            
+            <!-- Short-form Promo Banner -->
+            <section class="max-w-pc mx-auto px-6 py-10">
+                <div class="relative w-full h-[400px] rounded-3xl overflow-hidden cursor-pointer group shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1582719478250-c894e4dc240e?auto=format&fit=crop&w=1200&q=80" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" alt="호텔 영상 썸네일">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    
+                    <!-- Play Button Overlay -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl border border-white/40 group-hover:bg-white/40 transition-all">
+                            <i class="fa-solid fa-play ml-1"></i>
+                        </div>
+                    </div>
+
+                    <!-- Text & Timeline -->
+                    <div class="absolute bottom-0 left-0 w-full p-8 pb-6">
+                        <span class="bg-accent text-white text-xs font-bold px-2 py-1 rounded-sm mb-3 inline-block">NOL 숏폼</span>
+                        <h2 class="text-3xl font-bold text-white mb-2 leading-tight">30초 숏폼으로 미리보는<br>이번 주 핫플 숙소 TOP 3</h2>
+                        <p class="text-white/80 mb-6">#오션뷰 #감성숙소 #프라이빗풀빌라</p>
+                        
+                        <!-- Timeline Bar -->
+                        <div class="shortform-timeline">
+                            <div class="shortform-progress"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Domestic Top Hotels Grid -->
+            <section class="max-w-pc mx-auto px-6 py-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">지역별 BEST 추천 숙소 🇰🇷</h2>
+                <div class="grid grid-cols-3 gap-6">
+                    <!-- Seoul -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200 card-hover">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" alt="서울">
+                            <div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-xs font-bold">서울</div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-1 truncate">시그니엘 서울 (Signiel Seoul)</h3>
+                            <div class="flex items-center text-sm text-gray-500 mb-3"><i class="fa-solid fa-star text-yellow-400 mr-1"></i>4.9 (9,842건)</div>
+                            <div class="text-xl font-extrabold">520,000<span class="text-sm font-normal text-gray-500">원~</span></div>
+                        </div>
+                    </div>
+                    <!-- Busan -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200 card-hover">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1598565494247-49f2b84eb537?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" alt="부산">
+                            <div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-xs font-bold">부산</div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-1 truncate">파라다이스 호텔 부산</h3>
+                            <div class="flex items-center text-sm text-gray-500 mb-3"><i class="fa-solid fa-star text-yellow-400 mr-1"></i>4.8 (7,211건)</div>
+                            <div class="text-xl font-extrabold">315,000<span class="text-sm font-normal text-gray-500">원~</span></div>
+                        </div>
+                    </div>
+                    <!-- Jeju -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200 card-hover">
+                        <div class="relative h-48">
+                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover" alt="제주">
+                            <div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-xs font-bold">제주</div>
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-1 truncate">제주 신라호텔</h3>
+                            <div class="flex items-center text-sm text-gray-500 mb-3"><i class="fa-solid fa-star text-yellow-400 mr-1"></i>4.9 (12,045건)</div>
+                            <div class="text-xl font-extrabold">410,000<span class="text-sm font-normal text-gray-500">원~</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
+        <!-- ==========================================
+             3. GLOBAL VIEW (해외 숙소)
+        =========================================== -->
+        <div id="view-global" class="view-section">
+            <!-- Global Search Banner -->
+            <section class="bg-gradient-to-r from-blue-900 to-indigo-800 py-16">
+                <div class="max-w-pc mx-auto px-6 text-center">
+                    <h2 class="text-3xl font-extrabold text-white mb-8">전 세계 어디로든, NOL과 함께 떠나요 ✈️</h2>
+                    <div class="bg-white p-2 rounded-2xl shadow-lg max-w-[800px] mx-auto flex gap-2">
+                        <div class="flex-1 relative">
+                            <i class="fa-solid fa-globe absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" placeholder="해외 여행지, 도시, 랜드마크 검색" class="input-focus w-full pl-11 pr-4 py-4 rounded-xl border border-gray-100 bg-gray-50 font-medium">
+                        </div>
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-xl transition-colors">해외 숙소 찾기</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Global Spots Grid -->
+            <section class="max-w-pc mx-auto px-6 py-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">지금 가장 많이 떠나는 해외 여행지 🌍</h2>
+                <div class="grid grid-cols-3 gap-6">
+                    <!-- Osaka -->
+                    <div class="card-hover relative h-80 rounded-2xl overflow-hidden group">
+                        <img src="https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="오사카">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 text-white">
+                            <h3 class="text-2xl font-bold mb-1">오사카, 일본</h3>
+                            <p class="text-sm text-white/80 mb-3">미식과 즐길거리가 가득한 도시</p>
+                            <span class="bg-white/20 backdrop-blur-sm text-xs px-2 py-1 rounded">인기 숙소 2,134개</span>
+                        </div>
+                    </div>
+                    <!-- Tokyo -->
+                    <div class="card-hover relative h-80 rounded-2xl overflow-hidden group">
+                        <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="도쿄">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 text-white">
+                            <h3 class="text-2xl font-bold mb-1">도쿄, 일본</h3>
+                            <p class="text-sm text-white/80 mb-3">전통과 현대가 공존하는 트렌드 중심지</p>
+                            <span class="bg-white/20 backdrop-blur-sm text-xs px-2 py-1 rounded">인기 숙소 3,421개</span>
+                        </div>
+                    </div>
+                    <!-- Bangkok -->
+                    <div class="card-hover relative h-80 rounded-2xl overflow-hidden group">
+                        <img src="https://images.unsplash.com/photo-1583417657208-da604f114c0a?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="방콕">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 text-white">
+                            <h3 class="text-2xl font-bold mb-1">방콕, 태국</h3>
+                            <p class="text-sm text-white/80 mb-3">완벽한 가성비 호캉스와 화려한 야경</p>
+                            <span class="bg-white/20 backdrop-blur-sm text-xs px-2 py-1 rounded">인기 숙소 1,890개</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
+        <!-- ==========================================
+             4. TICKETS VIEW (공연·티켓)
+        =========================================== -->
+        <div id="view-tickets" class="view-section">
+            
+            <!-- Category Pills -->
+            <section class="bg-white border-b border-gray-100 py-6">
+                <div class="max-w-pc mx-auto px-6 flex justify-center gap-4">
+                    <button class="px-6 py-2.5 rounded-full bg-gray-900 text-white font-bold text-sm hover:bg-gray-800 transition-colors">전체보기</button>
+                    <button class="px-6 py-2.5 rounded-full border border-gray-200 text-gray-700 font-bold text-sm hover:border-gray-900 hover:text-gray-900 transition-colors">🎭 뮤지컬/연극</button>
+                    <button class="px-6 py-2.5 rounded-full border border-gray-200 text-gray-700 font-bold text-sm hover:border-gray-900 hover:text-gray-900 transition-colors">🎤 콘서트</button>
+                    <button class="px-6 py-2.5 rounded-full border border-gray-200 text-gray-700 font-bold text-sm hover:border-gray-900 hover:text-gray-900 transition-colors">🖼️ 전시/클래식</button>
+                    <button class="px-6 py-2.5 rounded-full border border-gray-200 text-gray-700 font-bold text-sm hover:border-gray-900 hover:text-gray-900 transition-colors">🎢 레저/투어</button>
+                </div>
+            </section>
+
+            <!-- Spotlight: Crime Scene -->
+            <section class="max-w-pc mx-auto px-6 py-12">
+                <div class="relative w-full h-[360px] rounded-3xl overflow-hidden cursor-pointer shadow-lg group bg-black">
+                    <img src="https://images.unsplash.com/photo-1552873547-b8bf5ceae47c?auto=format&fit=crop&w=1200&q=80" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" alt="크라임씬 기획전">
+                    <div class="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent"></div>
+                    
+                    <div class="absolute inset-0 p-12 flex flex-col justify-center w-2/3">
+                        <span class="text-red-500 font-bold tracking-widest text-sm mb-2 border border-red-500 inline-block px-2 py-0.5 rounded w-max">단독 스페셜 기획전</span>
+                        <h2 class="text-4xl font-extrabold text-white mb-4 leading-tight">치밀한 심리전!<br>크라임씬 방탈출 특별 기획전</h2>
+                        <p class="text-gray-300 text-lg mb-8">당신이 직접 탐정이 되어 사건을 해결하라. 전국 지점 최대 40% 할인 혜택</p>
+                        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg w-max transition-colors">기획전 바로가기</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Other Tickets Grid -->
+            <section class="max-w-pc mx-auto px-6 py-4">
+                <h3 class="text-xl font-bold text-gray-900 mb-6">주목할 만한 전시 & 레저</h3>
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="card-hover">
+                        <div class="h-48 rounded-xl overflow-hidden mb-3 bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1544257121-789a224a1803?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-bold text-accent">전시</span>
+                        <h4 class="font-bold text-gray-900 text-md truncate mt-1">에드워드 호퍼: 길 위에서</h4>
+                        <div class="font-extrabold mt-1">18,000<span class="text-sm font-normal">원</span></div>
+                    </div>
+                    <div class="card-hover">
+                        <div class="h-48 rounded-xl overflow-hidden mb-3 bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1533227260828-53146970bc81?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-bold text-blue-500">레저/테마파크</span>
+                        <h4 class="font-bold text-gray-900 text-md truncate mt-1">에버랜드 종일권 특가</h4>
+                        <div class="font-extrabold mt-1">36,000<span class="text-sm font-normal">원</span></div>
+                    </div>
+                    <div class="card-hover">
+                        <div class="h-48 rounded-xl overflow-hidden mb-3 bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-bold text-accent">전시</span>
+                        <h4 class="font-bold text-gray-900 text-md truncate mt-1">요시고 사진전: 따뜻한 휴일</h4>
+                        <div class="font-extrabold mt-1">15,000<span class="text-sm font-normal">원</span></div>
+                    </div>
+                    <div class="card-hover">
+                        <div class="h-48 rounded-xl overflow-hidden mb-3 bg-gray-100">
+                            <img src="https://images.unsplash.com/photo-1540039155733-d76e6d48e30f?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-bold text-purple-600">콘서트</span>
+                        <h4 class="font-bold text-gray-900 text-md truncate mt-1">2026 연말 인디 밴드 페스티벌</h4>
+                        <div class="font-extrabold mt-1">88,000<span class="text-sm font-normal">원</span></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 text-gray-500 py-10 border-t border-gray-200">
+        <div class="max-w-pc mx-auto px-6 flex justify-between items-center">
+            <div>
+                <div class="text-2xl font-black text-gray-800 mb-2">NOL</div>
+                <p class="text-sm">고객센터 1588-0000 | 평일 09:00 - 18:00<br>주식회사 놀컴퍼니 (프로토타입 SPA)</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-pointer"><i class="fa-brands fa-instagram text-xl"></i></div>
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-pointer"><i class="fa-brands fa-youtube text-xl"></i></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SPA Navigation Script -->
+    <script>
+        function navigateTo(viewId) {
+            // 1. Hide all views
+            const views = document.querySelectorAll('.view-section');
+            views.forEach(view => {
+                view.classList.remove('active');
+            });
+
+            // 2. Show target view
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on navigation
+            }
+
+            // 3. Update Nav Link styles
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                // Reset styling
+                link.classList.remove('text-primary', 'border-primary');
+                link.classList.add('text-gray-500', 'border-transparent');
+                
+                // Set active styling based on clicked element attributes matching target
+                if (link.getAttribute('onclick').includes(viewId)) {
+                    link.classList.remove('text-gray-500', 'border-transparent');
+                    link.classList.add('text-primary', 'border-primary');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "NOL Synergy - 여행과 티켓의 특별한 결합",
+  "description": "공연, 페스티벌, 스포츠 티켓과 최적의 숙소를 스마트하게 결합하여 잊지 못할 여정을 제안하는 올인원 여행·티켓 시너지 큐레이션 플랫폼",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
